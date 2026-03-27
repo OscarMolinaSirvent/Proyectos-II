@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niryo Pro Control Center</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logos">
+            <img src="upv.png" alt="UPV" class="logo-main">
+            <img src="dsic.png" alt="DSIC" class="logo-sub">
+        </div>
+        <div class="robot-hero">
+            <img src="robot.png" alt="Niryo Robot">
+        </div>
+        <div class="stats-box">
+            <p>PIEZAS PROCESADAS</p>
+            <h1 id="piezas">0</h1>
+        </div>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>Sistema de Control <span>Robot Niryo</span></h1>
+            <div id="status-indicator" class="status-online">SISTEMA CONECTADO</div>
+        </header>
+
+        <div class="dashboard-grid">
+            
+            <section class="card">
+                <h3><span class="icon"></span> Control de Cinta</h3>
+                <div class="btn-group">
+                    <button id="startCinta" class="btn btn-cinta-on">ACTIVAR CINTA</button>
+                    <button id="stopCinta" class="btn btn-cinta-off">PARAR CINTA</button>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3><span class="icon"></span> Posición Actual (TCP)</h3>
+                <div class="telemetry-grid">
+                    <div class="tel-item"><span>X</span><strong id="curr_x">0.00</strong></div>
+                    <div class="tel-item"><span>Y</span><strong id="curr_y">0.00</strong></div>
+                    <div class="tel-item"><span>Z</span><strong id="curr_z">0.00</strong></div>
+                    <div class="tel-item"><span>Roll</span><strong id="curr_roll">0.00</strong></div>
+                    <div class="tel-item"><span>Pitch</span><strong id="curr_pitch">0.00</strong></div>
+                    <div class="tel-item"><span>Yaw</span><strong id="curr_yaw">0.00</strong></div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3><span class="icon"></span> Ejecución de Programa</h3>
+                <div class="btn-group-main">
+                    <button id="startBtn" class="btn btn-start">START AUTO</button>
+                    <button id="stopBtn" class="btn btn-stop">PARADA EMERGENCIA</button>
+                    <button id="homeBtn" class="btn btn-home">HOME</button>
+                </div>
+            </section>
+
+            <section class="card full-width">
+                <h3><span class="icon"></span> Movimiento Manual de Precisión</h3>
+                <div class="manual-form">
+                    <div class="input-row">
+                        <div class="input-group"><label>X</label><input type="number" id="x" value="0.25"></div>
+                        <div class="input-group"><label>Y</label><input type="number" id="y" value="0.0"></div>
+                        <div class="input-group"><label>Z</label><input type="number" id="z" value="0.18"></div>
+                        <div class="input-group"><label>Roll</label><input type="number" id="roll" value="0.0"></div>
+                        <div class="input-group"><label>Pitch</label><input type="number" id="pitch" value="1.57"></div>
+                        <div class="input-group"><label>Yaw</label><input type="number" id="yaw" value="0.0"></div>
+                    </div>
+                    <button id="moveBtn" class="btn btn-execute">ENVIAR COORDENADAS AL ROBOT</button>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script>
+    const API_URL = "http://127.0.0.1:5000";
+    const statusDiv = document.getElementById("status-indicator");
+
+    // Función Ejercicio 1: Cinta
+    document.getElementById("startCinta").onclick = () => {
+        fetch(`${API_URL}/cinta/start`, { method: "POST" });
+        statusDiv.innerText = "CINTA: EN MARCHA";
+    };
+    document.getElementById("stopCinta").onclick = () => {
+        fetch(`${API_URL}/cinta/stop`, { method: "POST" });
+        statusDiv.innerText = "CINTA: DETENIDA";
+    };
+
+    // Función Ejercicio 2: Telemetría 1seg
+    function updateData() {
+        fetch(`${API_URL}/get_position`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("curr_x").innerText = data.x.toFixed(3);
+                document.getElementById("curr_y").innerText = data.y.toFixed(3);
+                document.getElementById("curr_z").innerText = data.z.toFixed(3);
+                document.getElementById("curr_roll").innerText = data.roll.toFixed(3);
+                document.getElementById("curr_pitch").innerText = data.pitch.toFixed(3);
+                document.getElementById("curr_yaw").innerText = data.yaw.toFixed(3);
+            }).catch(() => {});
+
+        fetch(`${API_URL}/paletizadas`, { method: "POST" })
+            .then(res => res.json())
+            .then(data => document.getElementById("piezas").innerText = data.piezas)
+            .catch(() => {});
+    }
+    setInterval(updateData, 1000);
+
+    // Función Ejercicio 3: Mover Robot
+    document.getElementById("moveBtn").onclick = () => {
+        const data = {
+            x: parseFloat(document.getElementById("x").value),
+            y: parseFloat(document.getElementById("y").value),
+            z: parseFloat(document.getElementById("z").value),
+            roll: parseFloat(document.getElementById("roll").value),
+            pitch: parseFloat(document.getElementById("pitch").value),
+            yaw: parseFloat(document.getElementById("yaw").value)
+        };
+        
+        statusDiv.innerText = "MOVIMIENTO EN CURSO...";
+        fetch(`${API_URL}/move`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        }).then(() => statusDiv.innerText = "POSICIÓN ALCANZADA");
+    };
+
+    // Otros controles
+    document.getElementById("startBtn").onclick = () => fetch(`${API_URL}/run_main`, {method:"POST"});
+    document.getElementById("stopBtn").onclick = () => fetch(`${API_URL}/stop`, {method:"POST"});
+    document.getElementById("homeBtn").onclick = () => fetch(`${API_URL}/home`, {method:"POST"});
+</script>
+</body>
+</html>
