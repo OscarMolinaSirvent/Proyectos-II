@@ -20,7 +20,7 @@ def receptor():
                 
                 mensaje = datos.decode('utf-8')
                 print(f"Mensaje recibido: {mensaje}")
-                with open('Ejercicio5/table.csv', 'a', newline='') as file:
+                with open('PracticaProcesosLinux/PracticaProcesos/Ejercicio5/table.csv', 'a', newline='') as file:
                     spamwriter = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     spamwriter.writerow([mensaje])
                 print("Mensaje guardado en table.csv")
