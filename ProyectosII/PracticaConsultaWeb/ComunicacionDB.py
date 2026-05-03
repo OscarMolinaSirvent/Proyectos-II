@@ -24,14 +24,31 @@ def insertar_log(conexion, instruccion):
 
 def obtener_logs(conexion, elemento=None):
     try:
-        cursor = conexion.cursor()
-        if elemento == "Movimiento":
+        cursor = conexion.cursor() 
+        if elemento == "Movimiento": #Filtrado por Elemento
             sql = """
             SELECT fecha_hora, elemento, instruccion
             FROM logs
-            WHERE elemento = 'Movimientos'
+            WHERE ELEMENTO = 'Movimiento'
             ORDER BY fecha_hora DESC
             """
+
+        if elemento == "Cinta":
+            sql = """
+            SELECT fecha_hora, elemento, instruccion
+            FROM logs
+            WHERE ELEMENTO = 'Cinta'
+            ORDER BY fecha_hora DESC
+            """
+        
+        if elemento == "Herramienta":
+            sql = """
+            SELECT fecha_hora, elemento, instruccion
+            FROM logs
+            WHERE ELEMENTO = 'Herramienta'
+            ORDER BY fecha_hora DESC
+            """
+            
         cursor.execute(sql)
         resultados = cursor.fetchall()
         cursor.close()

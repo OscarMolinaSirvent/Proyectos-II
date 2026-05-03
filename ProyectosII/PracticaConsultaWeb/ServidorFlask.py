@@ -58,6 +58,7 @@ def ver_logs():
     elemento = request.args.get("elemento")
     #obtener_logs se encuentra en el fichero de conexión a la BD
     logs = obtener_logs(conexion, elemento)
+    print(elemento)
     #Creación del HTML
     html = "<h2>Logs de Niryo</h2>"
     for fecha, elem, instruccion in logs:
