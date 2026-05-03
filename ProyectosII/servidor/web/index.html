@@ -64,12 +64,12 @@
                 <h3><span class="icon"></span> Movimiento Manual de Precisión</h3>
                 <div class="manual-form">
                     <div class="input-row">
-                        <div class="input-group"><label>X</label><input type="number" id="x" value="0.25"></div>
-                        <div class="input-group"><label>Y</label><input type="number" id="y" value="0.0"></div>
-                        <div class="input-group"><label>Z</label><input type="number" id="z" value="0.18"></div>
-                        <div class="input-group"><label>Roll</label><input type="number" id="roll" value="0.0"></div>
-                        <div class="input-group"><label>Pitch</label><input type="number" id="pitch" value="1.57"></div>
-                        <div class="input-group"><label>Yaw</label><input type="number" id="yaw" value="0.0"></div>
+                        <div class="input-group"><label>J1</label><input type="number" id="j1" value="0.0"></div>
+                        <div class="input-group"><label>J2</label><input type="number" id="j2" value="0.0"></div>
+                        <div class="input-group"><label>J3</label><input type="number" id="j3" value="0.0"></div>
+                        <div class="input-group"><label>J4</label><input type="number" id="j4" value="0.0"></div>
+                        <div class="input-group"><label>J5</label><input type="number" id="j5" value="0.0"></div>
+                        <div class="input-group"><label>J6</label><input type="number" id="j6" value="0.0"></div>
                     </div>
                     <button id="moveBtn" class="btn btn-execute">ENVIAR COORDENADAS AL ROBOT</button>
                 </div>
@@ -84,11 +84,11 @@
 
     // Función Ejercicio 1: Cinta
     document.getElementById("startCinta").onclick = () => {
-        fetch(`${API_URL}/cinta/start`, { method: "POST" });
+        fetch(`${API_URL}/startCinta`, { method: "POST" });
         statusDiv.innerText = "CINTA: EN MARCHA";
     };
     document.getElementById("stopCinta").onclick = () => {
-        fetch(`${API_URL}/cinta/stop`, { method: "POST" });
+        fetch(`${API_URL}/stopCinta`, { method: "POST" });
         statusDiv.innerText = "CINTA: DETENIDA";
     };
 
@@ -115,12 +115,12 @@
     // Función Ejercicio 3: Mover Robot
     document.getElementById("moveBtn").onclick = () => {
         const data = {
-            x: parseFloat(document.getElementById("x").value),
-            y: parseFloat(document.getElementById("y").value),
-            z: parseFloat(document.getElementById("z").value),
-            roll: parseFloat(document.getElementById("roll").value),
-            pitch: parseFloat(document.getElementById("pitch").value),
-            yaw: parseFloat(document.getElementById("yaw").value)
+            j1: parseFloat(document.getElementById("j1").value),
+            j2: parseFloat(document.getElementById("j2").value),
+            j3: parseFloat(document.getElementById("j3").value),
+            j4: parseFloat(document.getElementById("j4").value),
+            j5: parseFloat(document.getElementById("j5").value),
+            j6: parseFloat(document.getElementById("j6").value)
         };
         
         statusDiv.innerText = "MOVIMIENTO EN CURSO...";
