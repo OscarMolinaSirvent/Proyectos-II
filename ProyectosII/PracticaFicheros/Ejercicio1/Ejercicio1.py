@@ -28,10 +28,10 @@ def main():
         if not x1.is_alive():
             break
 
-    ruta = "Ejercicio1.txt"
+    ruta = "Ejercicio1/Ejercicio1.txt"
     numero = 0
     if tecla_x == True:
-        logging.info("Dentro")
+        logging.info("Ejercicio 1: Incrementar número en archivo")
         try:
             with open(ruta, "r") as f:
                 contenido = f.readline().strip()
@@ -50,10 +50,11 @@ def main():
             
     elif tecla_y == True:
         try:
-            with open("Alarma.txt", "a") as f:
+            logging.info("Ejercicio 2: Escribir '1' en Alarma.txt")
+            with open("Ejercicio1/Alarma.txt", "a") as f:
                 f.write("1")
         except FileNotFoundError:
-                print("El archivo no existe.")        
+                print("El archivo no existe.")
 
 if __name__ == "__main__":
     main()

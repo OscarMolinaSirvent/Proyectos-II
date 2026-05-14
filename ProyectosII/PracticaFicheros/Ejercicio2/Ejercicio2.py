@@ -2,7 +2,7 @@
 import logging
 
 logging.basicConfig(level=logging.INFO)
-maquina = True
+maquina = False
 
 def leer_estado():
     global maquina
@@ -11,10 +11,10 @@ def leer_estado():
             estado = f.readline().strip()
             if estado == "1" and maquina == False:
                 maquina = True
-                print("Ejercicio2/estado.txt")
+                logging.info("Ejercicio 2: Maquina encendida")
             elif estado == "0" and maquina == True:
                 maquina = False
-                print("Apagando maquina")
+                logging.info("Ejercicio 2: Maquina apagada")
 
             
     except FileNotFoundError:
