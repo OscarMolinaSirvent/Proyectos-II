@@ -33,11 +33,45 @@
 
             <div class="dashboard-grid">
 
+<<<<<<< HEAD:ProyectosII/servidor/web/index.html
+            <section class="card">
+                <h3><span class="icon"></span> Posición Actual (TCP)</h3>
+                <div class="telemetry-grid">
+                    <div class="tel-item"><span>X</span><strong id="curr_x">0.00</strong></div>
+                    <div class="tel-item"><span>Y</span><strong id="curr_y">0.00</strong></div>
+                    <div class="tel-item"><span>Z</span><strong id="curr_z">0.00</strong></div>
+                    <div class="tel-item"><span>Roll</span><strong id="curr_roll">0.00</strong></div>
+                    <div class="tel-item"><span>Pitch</span><strong id="curr_pitch">0.00</strong></div>
+                    <div class="tel-item"><span>Yaw</span><strong id="curr_yaw">0.00</strong></div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3><span class="icon"></span> Ejecución de Programa</h3>
+                <div class="btn-group-main">
+                    <button id="startBtn" class="btn btn-start">START AUTO</button>
+                    <button id="stopBtn" class="btn btn-stop">PARADA EMERGENCIA</button>
+                    <button id="homeBtn" class="btn btn-home">HOME</button>
+                </div>
+            </section>
+
+            <section class="card full-width">
+                <h3><span class="icon"></span> Movimiento Manual de Precisión</h3>
+                <div class="manual-form">
+                    <div class="input-row">
+                        <div class="input-group"><label>J1</label><input type="number" id="j1" value="0.0"></div>
+                        <div class="input-group"><label>J2</label><input type="number" id="j2" value="0.0"></div>
+                        <div class="input-group"><label>J3</label><input type="number" id="j3" value="0.0"></div>
+                        <div class="input-group"><label>J4</label><input type="number" id="j4" value="0.0"></div>
+                        <div class="input-group"><label>J5</label><input type="number" id="j5" value="0.0"></div>
+                        <div class="input-group"><label>J6</label><input type="number" id="j6" value="0.0"></div>
+=======
                 <section class="card">
                     <h3><span class="icon"></span> Control de Cinta</h3>
                     <div class="btn-group">
                         <button id="startCinta" class="btn btn-cinta-on">ACTIVAR CINTA</button>
                         <button id="stopCinta" class="btn btn-cinta-off">PARAR CINTA</button>
+>>>>>>> d1b72c5a513a8685583efd5c7ce978243bd39ef9:ProyectosII/web/index.html
                     </div>
                 </section>
 
@@ -53,6 +87,17 @@
                     </div>
                 </section>
 
+<<<<<<< HEAD:ProyectosII/servidor/web/index.html
+    // Función Ejercicio 1: Cinta
+    document.getElementById("startCinta").onclick = () => {
+        fetch(`${API_URL}/startCinta`, { method: "POST" });
+        statusDiv.innerText = "CINTA: EN MARCHA";
+    };
+    document.getElementById("stopCinta").onclick = () => {
+        fetch(`${API_URL}/stopCinta`, { method: "POST" });
+        statusDiv.innerText = "CINTA: DETENIDA";
+    };
+=======
                 <section class="card">
                     <h3><span class="icon"></span> Ejecución de Programa</h3>
                     <div class="btn-group-main">
@@ -61,6 +106,7 @@
                         <button id="homeBtn" class="btn btn-home">HOME</button>
                     </div>
                 </section>
+>>>>>>> d1b72c5a513a8685583efd5c7ce978243bd39ef9:ProyectosII/web/index.html
 
                 <section class="card full-width">
                     <h3><span class="icon"></span> Movimiento Manual de Precisión</h3>
@@ -84,6 +130,17 @@
 
     <script>
 
+<<<<<<< HEAD:ProyectosII/servidor/web/index.html
+    // Función Ejercicio 3: Mover Robot
+    document.getElementById("moveBtn").onclick = () => {
+        const data = {
+            j1: parseFloat(document.getElementById("j1").value),
+            j2: parseFloat(document.getElementById("j2").value),
+            j3: parseFloat(document.getElementById("j3").value),
+            j4: parseFloat(document.getElementById("j4").value),
+            j5: parseFloat(document.getElementById("j5").value),
+            j6: parseFloat(document.getElementById("j6").value)
+=======
         // Función Ejercicio 1: Cinta
         document.getElementById("startCinta").addEventListener("click", () => {
             fetch("http://127.0.0.1:5000/startCinta", {
@@ -98,6 +155,7 @@
         document.getElementById("stopCinta").onclick = () => {
             fetch(`${API_URL}/cinta/stop`, { method: "POST" });
             statusDiv.innerText = "CINTA: DETENIDA";
+>>>>>>> d1b72c5a513a8685583efd5c7ce978243bd39ef9:ProyectosII/web/index.html
         };
 
         
