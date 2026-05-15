@@ -6,6 +6,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Niryo Pro Control Center</title>
     <link rel="stylesheet" href="estilos.css">
+    <style>
+        /* Estilos funcionales necesarios para el control de la interfaz */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-button {
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 10px 20px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .tab-button.active {
+            background: #38bdf8;
+            color: #000;
+            border-color: #38bdf8;
+        }
+        .dashboard-grid-inner {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        /* Estilo específico para el botón de logout */
+        .btn-logout {
+            margin-top: auto;
+            width: 100%;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-logout:hover {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,6 +65,8 @@
                 <p>PIEZAS PROCESADAS</p>
                 <h1 id="piezas">0</h1>
             </div>
+
+            <button id="logoutBtn" class="btn-logout">CERRAR SESIÓN</button>
         </aside>
 
         <main class="content">
@@ -32,77 +76,71 @@
             </header>
 
             <div class="dashboard-grid">
-
-                <section class="card">
-                    <h3><span class="icon"></span> Control de Cinta</h3>
-                    <div class="btn-group">
-                        <button id="startCinta" class="btn btn-cinta-on">ACTIVAR CINTA</button>
-                        <button id="stopCinta" class="btn btn-cinta-off">PARAR CINTA</button>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h3><span class="icon"></span> Posición Actual (TCP)</h3>
-                    <div class="telemetry-grid">
-                        <div class="tel-item"><span>X</span><strong id="curr_x">0.00</strong></div>
-                        <div class="tel-item"><span>Y</span><strong id="curr_y">0.00</strong></div>
-                        <div class="tel-item"><span>Z</span><strong id="curr_z">0.00</strong></div>
-                        <div class="tel-item"><span>Roll</span><strong id="curr_roll">0.00</strong></div>
-                        <div class="tel-item"><span>Pitch</span><strong id="curr_pitch">0.00</strong></div>
-                        <div class="tel-item"><span>Yaw</span><strong id="curr_yaw">0.00</strong></div>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h3><span class="icon"></span> Ejecución de Programa</h3>
-                    <div class="btn-group-main">
-                        <button id="startBtn" class="btn btn-start">START AUTO</button>
-                        <button id="stopBtn" class="btn btn-stop">PARADA EMERGENCIA</button>
-                        <button id="homeBtn" class="btn btn-home">HOME</button>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h3><span class="icon"></span> Logs</h3>
-                    <div class="log-form">
-                        <label for="elemento">Filtrar logs por:</label>
-                        <select id="elemento">
-                            <option value="Cinta">Cinta</option>
-                            <option value="Movimiento">Movimientos</option>
-                            <option value="Herramienta">Herramienta</option>
-                        </select>
-                        <button id="openLogBtn" class="btn btn-log">ABRIR LOG</button>
-                    </div>
-                </section>
-
                 <section class="card full-width">
                     <h3><span class="icon"></span> Modo de Operación</h3>
+                    
                     <div class="tab-container">
                         <button id="automaticoTab" class="tab-button active">Automático</button>
-                        <button id="manualTab" class="tab-button">Manual</button>
+                        <button id="manualTab" class="tab-button" style="display: none;">Manual (Admin)</button>
                     </div>
-                    <div id="automaticoContent" class="tab-content active">
-                        <!-- Contenido del modo automático -->
-                        <p>Contenido exclusivo para el modo automático.</p>
-                    </div>
-                    <div id="manualContent" class="tab-content">
-                        <!-- Contenido del modo manual -->
-                        <p>Contenido exclusivo para el modo manual.</p>
-                    </div>
-                </section>
 
-                <section class="card full-width">
-                    <h3><span class="icon"></span> Movimiento Manual de Precisión</h3>
-                    <div class="manual-form">
-                        <div class="input-row">
-                            <div class="input-group"><label>J1</label><input type="number" id="j1" value="0.0"></div>
-                            <div class="input-group"><label>J2</label><input type="number" id="j2" value="0.0"></div>
-                            <div class="input-group"><label>J3</label><input type="number" id="j3" value="0.0"></div>
-                            <div class="input-group"><label>J4</label><input type="number" id="j4" value="0.0"></div>
-                            <div class="input-group"><label>J5</label><input type="number" id="j5" value="0.0"></div>
-                            <div class="input-group"><label>J6</label><input type="number" id="j6" value="0.0"></div>
+                    <div id="automaticoContent" class="tab-content active">
+                        <div class="dashboard-grid-inner">
+                            <section class="card" style="background: rgba(0,0,0,0.2);">
+                                <h3>Ejecución de Programa</h3>
+                                <div class="btn-group-main">
+                                    <button id="startBtn" class="btn btn-start">START AUTO</button>
+                                    <button id="stopBtn" class="btn btn-stop">STOP</button>
+                                    <button id="homeBtn" class="btn btn-home">HOME</button>
+                                </div>
+                            </section>
+
+                            <section class="card" style="background: rgba(0,0,0,0.2);">
+                                <h3>Consulta de Logs</h3>
+                                <div class="log-form">
+                                    <select id="elemento">
+                                        <option value="Cinta">Cinta</option>
+                                        <option value="Movimiento">Movimientos</option>
+                                        <option value="Herramienta">Herramienta</option>
+                                    </select>
+                                    <button id="openLogBtn" class="btn btn-log">ABRIR LOG</button>
+                                </div>
+                            </section>
                         </div>
-                        <button id="moveBtn" class="btn btn-execute">ENVIAR COORDENADAS AL ROBOT</button>
+                    </div>
+
+                    <div id="manualContent" class="tab-content">
+                        <div class="dashboard-grid-inner">
+                            <section class="card" style="background: rgba(0,0,0,0.2);">
+                                <h3>Control de Cinta</h3>
+                                <button id="startCinta" class="btn btn-cinta-on">ACTIVAR CINTA</button>
+                                <button id="stopCinta" class="btn btn-cinta-off">PARAR CINTA</button>
+                            </section>
+
+                            <section class="card" style="background: rgba(0,0,0,0.2);">
+                                <h3>Posición Actual (TCP)</h3>
+                                <div class="telemetry-grid">
+                                    <div class="tel-item"><span>X</span><strong id="curr_x">0.00</strong></div>
+                                    <div class="tel-item"><span>Y</span><strong id="curr_y">0.00</strong></div>
+                                    <div class="tel-item"><span>Z</span><strong id="curr_z">0.00</strong></div>
+                                </div>
+                            </section>
+
+                            <section class="card full-width" style="background: rgba(0,0,0,0.2);">
+                                <h3>Movimiento Manual de Precisión</h3>
+                                <div class="manual-form">
+                                    <div class="input-row">
+                                        <div class="input-group"><label>J1</label><input type="number" id="j1" value="0.0"></div>
+                                        <div class="input-group"><label>J2</label><input type="number" id="j2" value="0.0"></div>
+                                        <div class="input-group"><label>J3</label><input type="number" id="j3" value="0.0"></div>
+                                        <div class="input-group"><label>J4</label><input type="number" id="j4" value="0.0"></div>
+                                        <div class="input-group"><label>J5</label><input type="number" id="j5" value="0.0"></div>
+                                        <div class="input-group"><label>J6</label><input type="number" id="j6" value="0.0"></div>
+                                    </div>
+                                    <button id="moveBtn" class="btn btn-execute">ENVIAR COORDENADAS</button>
+                                </div>
+                            </section>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -111,41 +149,57 @@
 
     <script>
         const API_URL = "http://127.0.0.1:5000";
+        const userRole = sessionStorage.getItem("userRole");
         const statusDiv = document.getElementById("status-indicator");
 
-        // Función Ejercicio 1: Cinta
-        document.getElementById("startCinta").onclick = () => {
-            fetch(`${API_URL}/startCinta`, { method: "POST" });
-            statusDiv.innerText = "CINTA: EN MARCHA";
-        };
-        document.getElementById("stopCinta").onclick = () => {
-            fetch(`${API_URL}/stopCinta`, { method: "POST" });
-            statusDiv.innerText = "CINTA: DETENIDA";
-        };
-
-        // Función Ejercicio 2: Telemetría 1seg
-        function updateData() {
-            fetch(`${API_URL}/get_position`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("curr_x").innerText = data.x.toFixed(3);
-                    document.getElementById("curr_y").innerText = data.y.toFixed(3);
-                    document.getElementById("curr_z").innerText = data.z.toFixed(3);
-                    document.getElementById("curr_roll").innerText = data.roll.toFixed(3);
-                    document.getElementById("curr_pitch").innerText = data.pitch.toFixed(3);
-                    document.getElementById("curr_yaw").innerText = data.yaw.toFixed(3);
-                }).catch(() => { });
-
-            fetch(`${API_URL}/paletizadas`, { method: "POST" })
-                .then(res => res.json())
-                .then(data => document.getElementById("piezas").innerText = data.piezas)
-                .catch(() => { });
+        // --- 1. CONTROL DE ACCESO ---
+        const manualTab = document.getElementById("manualTab");
+        if (userRole === "ADMIN") {
+            manualTab.style.display = "inline-block";
         }
-        setInterval(updateData, 1000);
 
-        // Función Ejercicio 3: Mover Robot
-        document.getElementById("moveBtn").onclick = () => {
-            const data = {
+        // --- 2. LÓGICA DE CERRAR SESIÓN ---
+        document.getElementById("logoutBtn").onclick = () => {
+            sessionStorage.clear(); // Borra el rol y cualquier dato de sesión
+            window.location.href = "login.html"; // Redirige al login
+        };
+
+        // --- 3. LÓGICA DE PESTAÑAS ---
+        const autoBtn = document.getElementById("automaticoTab");
+        const autoContent = document.getElementById("automaticoContent");
+        const manContent = document.getElementById("manualContent");
+
+        autoBtn.onclick = () => {
+            autoBtn.classList.add("active");
+            manualTab.classList.remove("active");
+            autoContent.classList.add("active");
+            manContent.classList.remove("active");
+        };
+
+        manualTab.onclick = () => {
+            manualTab.classList.add("active");
+            autoBtn.classList.remove("active");
+            manContent.classList.add("active");
+            autoContent.classList.remove("active");
+        };
+
+        // --- 4. FUNCIONES DE CONTROL ---
+        document.getElementById("startCinta").onclick = () => fetch(`${API_URL}/startCinta`, { method: "POST" });
+        document.getElementById("stopCinta").onclick = () => fetch(`${API_URL}/stopCinta`, { method: "POST" });
+
+        async function updateTelemetry() {
+            try {
+                const res = await fetch(`${API_URL}/get_position`);
+                const data = await res.json();
+                document.getElementById("curr_x").innerText = data.x.toFixed(2);
+                document.getElementById("curr_y").innerText = data.y.toFixed(2);
+                document.getElementById("curr_z").innerText = data.z.toFixed(2);
+            } catch (e) { }
+        }
+        setInterval(updateTelemetry, 1000);
+
+        document.getElementById("moveBtn").onclick = async () => {
+            const joints = {
                 j1: parseFloat(document.getElementById("j1").value),
                 j2: parseFloat(document.getElementById("j2").value),
                 j3: parseFloat(document.getElementById("j3").value),
@@ -153,43 +207,23 @@
                 j5: parseFloat(document.getElementById("j5").value),
                 j6: parseFloat(document.getElementById("j6").value)
             };
-
-            statusDiv.innerText = "MOVIMIENTO EN CURSO...";
-            fetch(`${API_URL}/move`, {
+            statusDiv.innerText = "MOVIENDO ROBOT...";
+            await fetch(`${API_URL}/move`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            }).then(() => statusDiv.innerText = "POSICIÓN ALCANZADA");
+                body: JSON.stringify(joints)
+            });
+            statusDiv.innerText = "SISTEMA CONECTADO";
         };
 
-        function abrir_log() {
-            const elemento = document.getElementById("elemento").value;
-            window.open(`http://127.0.0.1:5000/log?elemento=${encodeURIComponent(elemento)}`, "_blank");
-        }
-        document.getElementById("openLogBtn").onclick = abrir_log;
-        // Otros controles
+        document.getElementById("openLogBtn").onclick = () => {
+            const filtro = document.getElementById("elemento").value;
+            window.open(`${API_URL}/log?elemento=${filtro}`, "_blank");
+        };
+
         document.getElementById("startBtn").onclick = () => fetch(`${API_URL}/run_main`, { method: "POST" });
         document.getElementById("stopBtn").onclick = () => fetch(`${API_URL}/stop`, { method: "POST" });
         document.getElementById("homeBtn").onclick = () => fetch(`${API_URL}/home`, { method: "POST" });
-
-        const automaticoTab = document.getElementById("automaticoTab");
-        const manualTab = document.getElementById("manualTab");
-        const automaticoContent = document.getElementById("automaticoContent");
-        const manualContent = document.getElementById("manualContent");
-
-        automaticoTab.addEventListener("click", () => {
-            automaticoTab.classList.add("active");
-            manualTab.classList.remove("active");
-            automaticoContent.classList.add("active");
-            manualContent.classList.remove("active");
-        });
-
-        manualTab.addEventListener("click", () => {
-            manualTab.classList.add("active");
-            automaticoTab.classList.remove("active");
-            manualContent.classList.add("active");
-            automaticoContent.classList.remove("active");
-        });
     </script>
 </body>
 

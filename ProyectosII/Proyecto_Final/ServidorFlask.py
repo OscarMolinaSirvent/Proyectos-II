@@ -11,7 +11,6 @@ CORS(app)
 
 @app.route("/startCinta", methods=["POST"])
 def runcov():
-    # Usamos threading para no bloquear el servidor mientras el robot se mueve
     print("Boton Pulsado")
     threading.Thread(target=run_conv).start()
     return jsonify({"status": "cinta funcionando"})

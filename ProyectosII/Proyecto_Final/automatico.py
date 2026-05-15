@@ -4,7 +4,7 @@ sensor_pin_id1 = PinID.DI5
 sensor_pin_id2 = PinID.DI1
 contador = 0
 
-robot = NiryoRobot("172.16.190.25")
+robot = NiryoRobot("127.0.0.1")
 
 #robot.calibrate_auto()
 robot.update_tool()
