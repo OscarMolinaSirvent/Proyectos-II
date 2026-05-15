@@ -1,7 +1,7 @@
 from pyniryo import *
 import sys
 
-robot_ip = "127.0.0.1" 
+robot_ip = "172.16.190.25" 
 
 try:
     robot = NiryoRobot(robot_ip) # Conexión real

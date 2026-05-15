@@ -65,5 +65,28 @@ def ver_logs():
             html += f"<li><strong>{fecha}</strong> [{elem}] - {instruccion}</li>"
     return html #Devolvemos el HTML generado
 
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    usuario = data.get("usuario")
+    password = data.get("password")
+    
+    # Conectamos a la BD (usando las credenciales de sistema que ya tienes)
+    conexion = conectar("omolsir", "omolsir")
+    if not conexion:
+        return jsonify({"success": False, "message": "Error de conexión con BD"}), 500
+    
+    tipo_usuario = verificar_credenciales(conexion, usuario, password)
+    conexion.close()
+    print(f"Usuario: {usuario}, Tipo: {tipo_usuario}, Contraseña: {password}")
+    if tipo_usuario:
+        return jsonify({
+            "success": True, 
+            "tipo": tipo_usuario, 
+            "mensaje": f"Bienvenido, {usuario}"
+        })
+    else:
+        return jsonify({"success": False, "message": "Usuario o contraseña incorrectos"}), 401
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=False)

@@ -57,3 +57,19 @@ def obtener_logs(conexion, elemento=None):
     except Exception as e:
         print("Error al consultar logs:", e)
         return []
+    
+def verificar_credenciales(conexion, nombre, password):
+    try:
+        cursor = conexion.cursor()
+        # Consulta basada en la estructura de tu tabla USUARIOS
+        sql = "SELECT TIPO FROM USUARIOS WHERE NOMBRE = :1 AND PASSWORD = :2"
+        cursor.execute(sql, [nombre, password])
+        resultado = cursor.fetchone()
+        cursor.close()
+        
+        if resultado:
+            return resultado[0]  #ADMIN O OPERARIO
+        return None
+    except Exception as e:
+        print(f"Error en la verificación: {e}")
+        return None
