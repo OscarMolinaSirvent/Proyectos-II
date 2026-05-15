@@ -65,8 +65,11 @@ def ver_logs():
             html += f"<li><strong>{fecha}</strong> [{elem}] - {instruccion}</li>"
     return html #Devolvemos el HTML generado
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["POST", "OPTIONS"])
 def login():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+    
     data = request.json
     usuario = data.get("usuario")
     password = data.get("password")
