@@ -76,6 +76,22 @@
                 </section>
 
                 <section class="card full-width">
+                    <h3><span class="icon"></span> Modo de Operación</h3>
+                    <div class="tab-container">
+                        <button id="automaticoTab" class="tab-button active">Automático</button>
+                        <button id="manualTab" class="tab-button">Manual</button>
+                    </div>
+                    <div id="automaticoContent" class="tab-content active">
+                        <!-- Contenido del modo automático -->
+                        <p>Contenido exclusivo para el modo automático.</p>
+                    </div>
+                    <div id="manualContent" class="tab-content">
+                        <!-- Contenido del modo manual -->
+                        <p>Contenido exclusivo para el modo manual.</p>
+                    </div>
+                </section>
+
+                <section class="card full-width">
                     <h3><span class="icon"></span> Movimiento Manual de Precisión</h3>
                     <div class="manual-form">
                         <div class="input-row">
@@ -155,6 +171,25 @@
         document.getElementById("startBtn").onclick = () => fetch(`${API_URL}/run_main`, { method: "POST" });
         document.getElementById("stopBtn").onclick = () => fetch(`${API_URL}/stop`, { method: "POST" });
         document.getElementById("homeBtn").onclick = () => fetch(`${API_URL}/home`, { method: "POST" });
+
+        const automaticoTab = document.getElementById("automaticoTab");
+        const manualTab = document.getElementById("manualTab");
+        const automaticoContent = document.getElementById("automaticoContent");
+        const manualContent = document.getElementById("manualContent");
+
+        automaticoTab.addEventListener("click", () => {
+            automaticoTab.classList.add("active");
+            manualTab.classList.remove("active");
+            automaticoContent.classList.add("active");
+            manualContent.classList.remove("active");
+        });
+
+        manualTab.addEventListener("click", () => {
+            manualTab.classList.add("active");
+            automaticoTab.classList.remove("active");
+            manualContent.classList.add("active");
+            automaticoContent.classList.remove("active");
+        });
     </script>
 </body>
 
