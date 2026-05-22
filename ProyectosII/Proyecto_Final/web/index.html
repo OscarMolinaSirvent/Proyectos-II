@@ -221,8 +221,8 @@
             window.open(`${API_URL}/log?elemento=${filtro}`, "_blank");
         };
 
-        document.getElementById("startBtn").onclick = () => fetch(`${API_URL}/run_main`, { method: "POST" });
-        document.getElementById("stopBtn").onclick = () => fetch(`${API_URL}/stop`, { method: "POST" });
+        document.getElementById("startBtn").onclick = () => fetch(`${API_URL}/startAuto`, { method: "POST" });
+        document.getElementById("stopBtn").onclick = () => fetch(`${API_URL}/stopAuto`, { method: "POST" });
         document.getElementById("homeBtn").onclick = () => fetch(`${API_URL}/home`, { method: "POST" });
     </script>
 </body>
