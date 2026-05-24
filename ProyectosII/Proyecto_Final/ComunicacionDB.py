@@ -12,7 +12,7 @@ def conectar(usuario, password):
         print("Error al conectar:", e)
         return None
 
-def insertar_log(conexion, instruccion):
+def insertar_log(conexion, instruccion): # Inserta en la BD LOG
     try:
         cursor = conexion.cursor()
         sql = "INSERT INTO LOGS (INSTRUCCION) VALUES (:1)"
@@ -21,6 +21,17 @@ def insertar_log(conexion, instruccion):
         cursor.close()
     except Exception as e:
         print("Error al insertar:", e)
+
+def insertar_cinta(conexion, velocidad, direccion, estado):
+    try:
+        cursor = conexion.cursor()
+        sql = "INSERT INTO CINTAS (VELOCIDAD, DIRECCION, ESTADO) VALUES (:1, :2, :3)"
+        cursor.execute(sql, [velocidad, direccion, estado])
+        conexion.commit()
+        cursor.close()
+        print("¡Registro insertado con éxito!")
+    except Exception as e:
+        print("Error al insertar en la tabla CINTAS:", e)
 
 def obtener_logs(conexion, elemento=None):
     try:

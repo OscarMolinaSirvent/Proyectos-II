@@ -53,7 +53,6 @@ def ruta_automatico():
 
 @app.route("/get_position", methods=["GET"])
 def get_position():
-    # Retorna inmediatamente la última posición capturada por el hilo de fondo
     with pos_lock:
         posicion = posicion_actual
     return jsonify(posicion)
