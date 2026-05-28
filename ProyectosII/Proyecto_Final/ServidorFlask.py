@@ -38,9 +38,13 @@ threading.Thread(target=bucle_actualizacion_posicion, daemon=True).start()
 
 @app.route("/startCinta", methods=["POST"])
 def runcov():
-    print("Boton Pulsado")
-    threading.Thread(target=run_conv).start()
-    return jsonify({"status": "cinta funcionando"})
+    data = request.json or {}
+    # Cambiado: Obtenemos el parámetro 'velocidad' desde el cuerpo JSON (por defecto 50)
+    velocidad = data.get("velocidad", 50)
+
+    print(f"Boton Pulsado: Iniciando cinta a velocidad {velocidad}")
+    threading.Thread(target=run_conv, args=(velocidad,)).start()
+    return jsonify({"status": f"cinta funcionando a velocidad {velocidad}", "velocidad": velocidad})
 
 @app.route("/stopCinta", methods=["POST"])
 def stop_cinta():
@@ -137,6 +141,16 @@ def login():
         })
     else:
         return jsonify({"success": False, "message": "Usuario o contraseña incorrectos"}), 401
+    
+@app.route("/abrirPinza", methods=["POST"])
+def abrir_pinza():
+    threading.Thread(target=Funciones.abrir_pinza).start()
+    return jsonify({"status": "pinza abierta"})
+
+@app.route("/cerrarPinza", methods=["POST"])
+def cerrar_pinza():
+    threading.Thread(target=Funciones.cerrar_pinza).start()
+    return jsonify({"status": "pinza cerrada"})
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=False)

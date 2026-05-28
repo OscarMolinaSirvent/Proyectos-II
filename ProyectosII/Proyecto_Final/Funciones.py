@@ -2,7 +2,8 @@ from pyniryo import *
 import sys
 import csv
 from datetime import datetime
-import threading  # <-- Necesario para el objeto Lock
+import threading
+from ComunicacionDB import *
 
 robot_ip = "127.0.0.1" 
 
@@ -22,19 +23,29 @@ except Exception as e:
     print("Error de conexión:", e)
     sys.exit()
 
+try:
+    conexion_db = conectar("omolsir", "omolsir")
+    insertar_log(conexion_db, "Inicio de sistema OMOLSIR", "Servidor Central")
+except Exception as e:
+    print("Error de conexión a la Base de Datos:", e)
+
 # --- Configuración de Pines y Variables ---
 sensor_pin_id1 = PinID.DI5
 sensor_pin_id2 = PinID.DI1
 contador = 0
 cinta_activa = False 
 
-def run_conv():
+def run_conv(velocidad):
     with lock:
-        robot.run_conveyor(conveyor_id, speed=50, direction=ConveyorDirection.FORWARD)
+        robot.run_conveyor(conveyor_id, speed=velocidad, direction=ConveyorDirection.FORWARD)
+        insertar_log(conexion_db, "Cinta Activa", "Cinta")
+        modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=velocidad, nueva_direccion="FORWARD", nuevo_estado="En Funcionamiento")
 
 def stop_conv():
     with lock:
         robot.stop_conveyor(conveyor_id)
+        insertar_log(conexion_db, "Cinta Detenida", "Cinta")
+        modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=0, nueva_direccion="NULL", nuevo_estado="Detenida")
 
 def get_pose():
     with lock:
@@ -83,14 +94,31 @@ def verificar_parada():
     if stop_urgente.is_set():
         raise InterruptedError("HILO_DETENIDO: Parada de emergencia solicitada.")
 
+def abrir_pinza():
+    with lock:
+        robot.release_with_tool()
+        modificar_pinza(conexion_db, id_componente=2, nuevo_estado="Abierta")
+        insertar_log(conexion_db, "Pinza Abierta", "Herramienta")
+        registrar_estado("Abierta")
+def cerrar_pinza():
+    with lock:
+        robot.grasp_with_tool()
+        modificar_pinza(conexion_db, id_componente=2, nuevo_estado="Cerrada")
+        insertar_log(conexion_db, "Pinza Cerrada", "Herramienta")
+        registrar_estado("Cerrada (Objeto)")
+        
 def PickPlace():
     global contador, cinta_activa
     
     verificar_parada()
     robot.stop_conveyor(conveyor_id)
+    modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=0, nueva_direccion="NULL", nuevo_estado="Detenida")
+    insertar_log(conexion_db, "Cinta Detenida", "Cinta")
+    insertar_comando(conexion_db, "MoveJoints", "N/A", "Automatico", "N/A", id_robot=1)
     robot.release_with_tool()
+    modificar_pinza(conexion_db, id_componente=2, nuevo_estado="Abierta")
+    insertar_log(conexion_db, "Pinza Abierta", "Herramienta")
     registrar_estado("Abierta")
-    
     verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
     registrar_estado("Abierta")
@@ -105,6 +133,8 @@ def PickPlace():
     
     verificar_parada()
     robot.grasp_with_tool()
+    modificar_pinza(conexion_db, id_componente=2, nuevo_estado="Cerrada")
+    insertar_log(conexion_db, "Pinza Cerrada", "Herramienta")
     registrar_estado("Cerrada (Objeto)")
     
     verificar_parada()
@@ -121,8 +151,9 @@ def PickPlace():
     
     verificar_parada()
     robot.release_with_tool()
+    modificar_pinza(conexion_db, id_componente=2, nuevo_estado="Abierta")
+    insertar_log(conexion_db, "Pinza Abierta", "Herramienta")
     registrar_estado("Abierta")
-    
     verificar_parada()
     robot.move(JointsPosition(-0.72, -0.65, 0.24, 0.01, -1.16, -0.84)) 
     registrar_estado("Abierta")
@@ -134,26 +165,37 @@ def PickPlace():
     verificar_parada()
     robot.run_conveyor(conveyor_id, speed=80, direction=ConveyorDirection.FORWARD)
     cinta_activa = True
+    modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=80, nueva_direccion="FORWARD", nuevo_estado="En Funcionamiento")
+    insertar_log(conexion_db, "Cinta Activa", "Cinta")
     registrar_estado("Abierta")
     
-    while robot.digital_read(sensor_pin_id1) == PinState.HIGH:
+    """while robot.digital_read(sensor_pin_id1) == PinState.HIGH:
         verificar_parada()
-        robot.wait(0.1)
+        modificar_sensor(conexion_db, id_componente=3, nuevo_tipo="1", nuevo_estado= "HIGH" if robot.digital_read(sensor_pin_id1) == PinState.HIGH else "LOW")
+        modificar_sensor(conexion_db, id_componente=4, nuevo_tipo="2", nuevo_estado= "HIGH" if robot.digital_read(sensor_pin_id2) == PinState.HIGH else "LOW")
+
+        robot.wait(0.1)""" #Descomentar para activar función de sensor
 
     verificar_parada()
     robot.wait(0.5)
     robot.stop_conveyor(conveyor_id)
+    modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=0, nueva_direccion="NULL", nuevo_estado="Detenida")
+
     cinta_activa = False
     registrar_estado("Abierta")
     
     verificar_parada()
-    if robot.digital_read(sensor_pin_id2) == PinState.LOW:
+    """if robot.digital_read(sensor_pin_id2) == PinState.LOW:
+        modificar_sensor(conexion_db, id_componente=3, nuevo_tipo="1", nuevo_estado= "HIGH" if robot.digital_read(sensor_pin_id1) == PinState.HIGH else "LOW")
+        modificar_sensor(conexion_db, id_componente=4, nuevo_tipo="2", nuevo_estado= "HIGH" if robot.digital_read(sensor_pin_id2) == PinState.HIGH else "LOW")
         Defectuosas()
-        return 1
+        return 1""" #Descomentar para activar función de defectuosas
         
     verificar_parada()
     robot.run_conveyor(conveyor_id, speed=80, direction=ConveyorDirection.FORWARD)
     cinta_activa = True
+    modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=80, nueva_direccion="FORWARD", nuevo_estado="En Funcionamiento")
+    insertar_log(conexion_db, "Cinta Activa", "Cinta")
     registrar_estado("Abierta")
     
     verificar_parada()
@@ -161,21 +203,19 @@ def PickPlace():
 
     verificar_parada()
     robot.stop_conveyor(conveyor_id)
+    modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=0, nueva_direccion="NULL", nuevo_estado="Detenida")
+    insertar_log(conexion_db, "Cinta Detenida", "Cinta")
     cinta_activa = False
     registrar_estado("Abierta")
-    
     verificar_parada()
-    if contador == 0:
-        MovimientoMesa1()
-        contador += 1
-    elif contador == 1:
-        MovimientoMesa2()
-        contador += 1
+
     return 0
 
-def MovimientoMesa1():
+def MovimientoMesa1(x,y):
     verificar_parada()
     robot.release_with_tool()
+    modificar_pinza(conexion_db, id_componente=2, nuevo_estado="Abierta")
+    insertar_log(conexion_db, "Pinza Abierta", "Herramienta")
     registrar_estado("Abierta")
     verificar_parada()
     robot.move(JointsPosition(0.84,-0.99,0.60,-0.02,-1.26,0.02))
@@ -185,63 +225,39 @@ def MovimientoMesa1():
     registrar_estado("Abierta")
     verificar_parada()
     robot.grasp_with_tool() 
+    modificar_pinza(conexion_db, id_componente=2, nuevo_estado="Cerrada")
+    insertar_log(conexion_db, "Pinza Cerrada", "Herramienta")
     registrar_estado("Cerrada (Objeto)")
     verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
     registrar_estado("Cerrada (Objeto)")
     verificar_parada()
-    robot.move(JointsPosition(1.80,0.03,-0.99,0.10,-0.70,0.12))
+    robot.move(JointsPosition(x,y,-0.99,0.10,-0.70,0.12))
     registrar_estado("Cerrada (Objeto)")
     verificar_parada()
-    robot.move(JointsPosition(1.80,-0.08,-1.03,0.09,-0.50,0.11))
+    robot.move(JointsPosition(x,y,-1.03,0.09,-0.50,0.11))
     registrar_estado("Cerrada (Objeto)")
     verificar_parada()
     robot.release_with_tool()
+    modificar_pinza(conexion_db, id_componente=2, nuevo_estado="Abierta")
+    insertar_log(conexion_db, "Pinza Abierta", "Herramienta")
     registrar_estado("Abierta")
     verificar_parada()
-    robot.move(JointsPosition(1.80,0.03,-0.99,0.10,-0.70,0.12))
+    robot.move(JointsPosition(x,y,-0.99,0.10,-0.70,0.12))
     registrar_estado("Abierta")
     verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
     registrar_estado("Abierta")
     
-def MovimientoMesa2():
-    verificar_parada()
-    robot.release_with_tool()
-    registrar_estado("Abierta")
-    verificar_parada()
-    robot.move(JointsPosition(0.84,-0.99,0.60,-0.02,-1.26,0.02))
-    registrar_estado("Abierta")
-    verificar_parada()
-    robot.move(JointsPosition(0.84,-0.99,0.52,-0.03,-1.14,0.03))
-    registrar_estado("Abierta")
-    verificar_parada()
-    robot.grasp_with_tool() 
-    registrar_estado("Cerrada (Objeto)")
-    verificar_parada()
-    robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
-    registrar_estado("Cerrada (Objeto)")
-    verificar_parada()
-    robot.move(JointsPosition(1.71,-0.57,-0.15,0.00,-0.88,0.17))
-    registrar_estado("Cerrada (Objeto)")
-    verificar_parada()
-    robot.move(JointsPosition(1.70,-0.65,-0.15,0.00,-0.80,0.16))
-    registrar_estado("Cerrada (Objeto)")
-    verificar_parada()
-    robot.release_with_tool()
-    registrar_estado("Abierta")
-    verificar_parada()
-    robot.move(JointsPosition(1.71,-0.57,-0.15,0.00,-0.88,0.17))
-    registrar_estado("Abierta")
-    verificar_parada()
-    robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
-    registrar_estado("Abierta")
+
     
 def Defectuosas():
     global cinta_activa
     verificar_parada()
     robot.run_conveyor(conveyor_id, speed=80, direction=ConveyorDirection.BACKWARD)
     cinta_activa = True
+    modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=80, nueva_direccion="BACKWARD", nuevo_estado="En Funcionamiento")
+    insertar_log(conexion_db, "Cinta Activa", "Cinta")
     registrar_estado("Desconocido")
     
     for i in range(100):
@@ -251,20 +267,37 @@ def Defectuosas():
     verificar_parada()
     robot.stop_conveyor(conveyor_id)
     cinta_activa = False
+    modificar_cinta(conexion_db, id_componente=1, nueva_velocidad=0, nueva_direccion="NULL", nuevo_estado="Detenida")
+    insertar_log(conexion_db, "Cinta Detenida", "Cinta")
     registrar_estado("Desconocido")
 
 def detener_ciclo_automatico():
     """Activa el flag de parada urgente para romper la ejecución del bucle."""
     stop_urgente.set()
 
+x =1.8
+y = 0.03
 def automatico():
     stop_urgente.clear()
-    
+    global x, y
+    actualizar_estado_robot(conexion_db, id_robot=1, nuevo_estado="En Ejecución")
     with lock:
         try:
-            PickPlace()
-            PickPlace()
-            PickPlace()
+            for i in range(1,5):
+                PickPlace()
+                MovimientoMesa1(x,y)
+                modificar_ocupado(conexion_db, id_tablero=1, identificador_casilla=i, nuevo_estado="Ocupado")
+                if i == 0:
+                    y += 0.05
+                elif i == 1:
+                    x += 0.05
+                    y = 0.23
+                elif i == 2:
+                    y += 0.05
+            actualizar_estado_robot(conexion_db, id_robot=1, nuevo_estado="En Espera")
+            for i in range(1,5):
+                modificar_ocupado(conexion_db, id_tablero=1, identificador_casilla=i, nuevo_estado="Libre")
+
         except InterruptedError as e:
             print(f"Aviso: {e}")
         except Exception as e:

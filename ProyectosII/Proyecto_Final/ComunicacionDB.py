@@ -12,26 +12,120 @@ def conectar(usuario, password):
         print("Error al conectar:", e)
         return None
 
-def insertar_log(conexion, instruccion): # Inserta en la BD LOG
+def insertar_log(conexion, instruccion, elemento):
     try:
         cursor = conexion.cursor()
-        sql = "INSERT INTO LOGS (INSTRUCCION) VALUES (:1)"
-        cursor.execute(sql, [instruccion])
+        sql = "INSERT INTO LOGS (INSTRUCCION, ELEMENTO) VALUES (:1, :2)"
+        cursor.execute(sql, [instruccion, elemento])
         conexion.commit()
         cursor.close()
+        print("¡Log guardado en el historial!")
     except Exception as e:
-        print("Error al insertar:", e)
+        print("Error en LOGS:", e)
 
-def insertar_cinta(conexion, velocidad, direccion, estado):
+def modificar_cinta(conexion, id_componente, nueva_velocidad, nueva_direccion, nuevo_estado):
     try:
         cursor = conexion.cursor()
-        sql = "INSERT INTO CINTAS (VELOCIDAD, DIRECCION, ESTADO) VALUES (:1, :2, :3)"
-        cursor.execute(sql, [velocidad, direccion, estado])
+        
+        sql = """
+            UPDATE CINTAS 
+            SET VELOCIDAD = :1, 
+                DIRECCION = :2, 
+                ESTADO = :3, 
+                FECHA_CINTAS = SYSDATE 
+            WHERE ID_COMPONENTE = :4
+        """
+        cursor.execute(sql, [nueva_velocidad, nueva_direccion, nuevo_estado, id_componente])
+        conexion.commit()
+
+        if cursor.rowcount > 0:
+            print(f"¡Éxito! Cinta {id_componente} actualizada (Datos y Fecha modificados).")
+        else:
+            print(f"Advertencia: No se encontró ninguna cinta con el ID {id_componente}.")
+            
+        cursor.close()
+    except Exception as e:
+        print("Error al intentar modificar la cinta:", e)
+
+def insertar_comando(conexion, nombre_accion, valor, tipo, eje1_6, id_robot):
+    try:
+        cursor = conexion.cursor()
+        sql = "INSERT INTO COMANDOS (NOMBRE_ACCION, VALOR, TIPO, EJE1_6, ID_ROBOT) VALUES (:1, :2, :3, :4, :5)"
+        cursor.execute(sql, [nombre_accion, valor, tipo, eje1_6, id_robot])
         conexion.commit()
         cursor.close()
-        print("¡Registro insertado con éxito!")
+        print("¡Comando registrado con éxito!")
     except Exception as e:
-        print("Error al insertar en la tabla CINTAS:", e)
+        print("Error en COMANDOS:", e)
+
+def modificar_ocupado(conexion, id_tablero, identificador_casilla, nuevo_estado):
+    try:
+        cursor = conexion.cursor()
+        sql = """
+            UPDATE OCUPADOS 
+            SET ESTADO = :1, 
+                FECHA_OCUPADOS = SYSDATE 
+            WHERE ID_TABLERO = :2 
+              AND IDENTIFICADOR = :3
+        """
+
+        cursor.execute(sql, [nuevo_estado, id_tablero, identificador_casilla])
+        conexion.commit()
+
+        if cursor.rowcount > 0:
+            print(f"¡Éxito! Casilla {identificador_casilla} del Tablero {id_tablero} actualizada a '{nuevo_estado}'.")
+        else:
+            print(f"Advertencia: No se encontró la casilla {identificador_casilla} en el tablero {id_tablero}.")
+            
+        cursor.close()
+    except Exception as e:
+        print("Error al intentar modificar el registro en OCUPADOS:", e)
+
+
+def modificar_sensor(conexion, id_componente, nuevo_tipo, nuevo_estado):
+    try:
+        cursor = conexion.cursor()
+        sql = """
+            UPDATE SENSORES 
+            SET TIPO = :1, 
+                ESTADO = :2, 
+                FECHA_SENSORES = SYSDATE 
+            WHERE ID_COMPONENTE = :3
+        """
+        
+        cursor.execute(sql, [nuevo_tipo, nuevo_estado, id_componente])
+        conexion.commit()
+
+        if cursor.rowcount > 0:
+            print(f"¡Éxito! Sensor {id_componente} actualizado (Tipo: {nuevo_tipo}, Estado: {nuevo_estado}).")
+        else:
+            print(f"Advertencia: No se encontró ningún sensor con el ID {id_componente}.")
+            
+        cursor.close()
+    except Exception as e:
+        print("Error al intentar modificar el sensor:", e)
+
+def modificar_pinza(conexion, id_componente, nuevo_estado):
+    try:
+        cursor = conexion.cursor()
+        sql = """
+            UPDATE PINZAS 
+            SET ESTADO = :1, 
+                FECHA_PINZA = SYSDATE 
+            WHERE ID_COMPONENTE = :2
+        """
+        
+        cursor.execute(sql, [nuevo_estado, id_componente])
+        conexion.commit()
+        
+        if cursor.rowcount > 0:
+            print(f"¡Éxito! Pinza {id_componente} actualizada a '{nuevo_estado}' (Fecha renovada).")
+        else:
+            print(f"Advertencia: No se encontró ninguna pinza con el ID {id_componente}.")
+            
+        cursor.close()
+    except Exception as e:
+        print("Error al intentar modificar la pinza:", e)
 
 def actualizar_estado_robot(conexion, id_robot, nuevo_estado):
 
