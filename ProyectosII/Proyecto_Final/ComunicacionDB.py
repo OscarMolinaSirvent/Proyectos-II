@@ -33,6 +33,19 @@ def insertar_cinta(conexion, velocidad, direccion, estado):
     except Exception as e:
         print("Error al insertar en la tabla CINTAS:", e)
 
+def actualizar_estado_robot(conexion, id_robot, nuevo_estado):
+
+    try:
+        cursor = conexion.cursor()
+        # Sentencia SQL usando marcadores de posición para evitar inyección SQL
+        sql = "UPDATE ROBOTS SET ESTADO = :1 WHERE ID = :2"
+        
+        cursor.execute(sql, [nuevo_estado, id_robot])
+        conexion.commit()
+        cursor.close()
+    except Exception as e:
+        print("Error al intentar actualizar el estado del robot:", e)
+
 def obtener_logs(conexion, elemento=None):
     try:
         cursor = conexion.cursor() 
