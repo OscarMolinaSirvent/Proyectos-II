@@ -9,6 +9,10 @@ import time
 app = Flask(__name__)
 CORS(app) 
 
+# Nombres corregidos de acuerdo a la arquitectura de hilos
+hilo_automatico = None
+automatico_lock = threading.Lock()
+
 posicion_actual = {"status": "inicializando"}
 # Evita colisiones de lectura/escritura de la variable en memoria de Flask
 pos_lock = threading.Lock()
@@ -45,11 +49,36 @@ def stop_cinta():
 
 
 @app.route("/startAuto", methods=["POST"])
-def ruta_automatico():
+def start_automatico():
+    global hilo_automatico
     print("Iniciando ciclo automático...")
-    threading.Thread(target=Funciones.automatico).start()
+
+    with automatico_lock:
+        if hilo_automatico is not None and hilo_automatico.is_alive():
+            return jsonify({"status": "el proceso automatico ya esta en ejecucion"}), 409
+
+        # Se inicializa y arranca el hilo usando el nuevo nombre de variable
+        hilo_automatico = threading.Thread(target=Funciones.automatico)
+        hilo_automatico.start()
+
     return jsonify({"status": "proceso automatico iniciado"})
 
+@app.route("/stopAuto", methods=["POST"])
+def stop_automatico():
+    global hilo_automatico
+    print("Deteniendo ciclo automático...")
+
+    with automatico_lock:
+        if hilo_automatico is None or not hilo_automatico.is_alive():
+            hilo_automatico = None
+            return jsonify({"status": "no hay proceso automatico en ejecucion"}), 409
+
+        # Indicamos de forma inmediata al hilo que interrumpa los movimientos del Niryo
+        Funciones.detener_ciclo_automatico()
+        hilo_automatico.join(timeout=2)
+        hilo_automatico = None
+
+    return jsonify({"status": "proceso automatico detenido"})
 
 @app.route("/get_position", methods=["GET"])
 def get_position():

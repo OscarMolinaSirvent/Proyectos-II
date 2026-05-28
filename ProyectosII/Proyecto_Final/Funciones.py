@@ -4,14 +4,17 @@ import csv
 from datetime import datetime
 import threading  # <-- Necesario para el objeto Lock
 
-robot_ip = "172.16.190.25" 
+robot_ip = "127.0.0.1" 
 
 # Único lock para asegurar que no se solapen comandos en el socket TCP del robot
 lock = threading.Lock()
 
+# Evento para frenar el hilo del ciclo automático de forma inmediata
+stop_urgente = threading.Event()
+
 try:
     # --- Conexión al Robot ---
-    robot = NiryoRobot("172.16.190.25")
+    robot = NiryoRobot(robot_ip)
     robot.calibrate_auto()
     robot.update_tool()
     conveyor_id = robot.set_conveyor()
@@ -75,67 +78,93 @@ def registrar_estado(estado_herramienta="Desconocido"):
         escritor = csv.writer(f)
         escritor.writerow(fila)
 
+def verificar_parada():
+    """Lanza una excepción si se ha solicitado detener la ejecución."""
+    if stop_urgente.is_set():
+        raise InterruptedError("HILO_DETENIDO: Parada de emergencia solicitada.")
+
 def PickPlace():
     global contador, cinta_activa
+    
+    verificar_parada()
     robot.stop_conveyor(conveyor_id)
     robot.release_with_tool()
     registrar_estado("Abierta")
     
+    verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
     registrar_estado("Abierta")
     
+    verificar_parada()
     robot.move(JointsPosition(-0.68, -0.38, -0.30,-0.21,-1.09, -0.60)) 
     registrar_estado("Abierta")
     
+    verificar_parada()
     robot.move(JointsPosition(-0.69, -0.47, -0.32, -0.23 , -1.10, -0.58)) 
     registrar_estado("Abierta")
     
+    verificar_parada()
     robot.grasp_with_tool()
     registrar_estado("Cerrada (Objeto)")
     
+    verificar_parada()
     robot.move(JointsPosition(-0.68, -0.38, -0.30,-0.21,-1.09, -0.60)) 
     registrar_estado("Cerrada (Objeto)")
     
+    verificar_parada()
     robot.move(JointsPosition(-0.72, -0.70, 0.10, -0.02, -0.96, -0.89)) 
     registrar_estado("Cerrada (Objeto)")
     
+    verificar_parada()
     robot.move(JointsPosition(-0.76, -0.73, 0.03, -0.03, -0.86, -0.88)) 
     registrar_estado("Cerrada (Objeto)")
     
+    verificar_parada()
     robot.release_with_tool()
     registrar_estado("Abierta")
     
+    verificar_parada()
     robot.move(JointsPosition(-0.72, -0.65, 0.24, 0.01, -1.16, -0.84)) 
     registrar_estado("Abierta")
     
+    verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0))
     registrar_estado("Abierta")
     
+    verificar_parada()
     robot.run_conveyor(conveyor_id, speed=80, direction=ConveyorDirection.FORWARD)
     cinta_activa = True
     registrar_estado("Abierta")
     
     while robot.digital_read(sensor_pin_id1) == PinState.HIGH:
+        verificar_parada()
         robot.wait(0.1)
 
+    verificar_parada()
     robot.wait(0.5)
     robot.stop_conveyor(conveyor_id)
     cinta_activa = False
     registrar_estado("Abierta")
     
+    verificar_parada()
     if robot.digital_read(sensor_pin_id2) == PinState.LOW:
         Defectuosas()
         return 1
         
+    verificar_parada()
     robot.run_conveyor(conveyor_id, speed=80, direction=ConveyorDirection.FORWARD)
     cinta_activa = True
     registrar_estado("Abierta")
     
+    verificar_parada()
     robot.wait(4)
+
+    verificar_parada()
     robot.stop_conveyor(conveyor_id)
     cinta_activa = False
     registrar_estado("Abierta")
     
+    verificar_parada()
     if contador == 0:
         MovimientoMesa1()
         contador += 1
@@ -145,62 +174,98 @@ def PickPlace():
     return 0
 
 def MovimientoMesa1():
+    verificar_parada()
     robot.release_with_tool()
     registrar_estado("Abierta")
+    verificar_parada()
     robot.move(JointsPosition(0.84,-0.99,0.60,-0.02,-1.26,0.02))
     registrar_estado("Abierta")
+    verificar_parada()
     robot.move(JointsPosition(0.84,-0.99,0.52,-0.03,-1.14,0.03))
     registrar_estado("Abierta")
+    verificar_parada()
     robot.grasp_with_tool() 
     registrar_estado("Cerrada (Objeto)")
+    verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
     registrar_estado("Cerrada (Objeto)")
+    verificar_parada()
     robot.move(JointsPosition(1.80,0.03,-0.99,0.10,-0.70,0.12))
     registrar_estado("Cerrada (Objeto)")
+    verificar_parada()
     robot.move(JointsPosition(1.80,-0.08,-1.03,0.09,-0.50,0.11))
     registrar_estado("Cerrada (Objeto)")
+    verificar_parada()
     robot.release_with_tool()
     registrar_estado("Abierta")
+    verificar_parada()
     robot.move(JointsPosition(1.80,0.03,-0.99,0.10,-0.70,0.12))
     registrar_estado("Abierta")
+    verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
     registrar_estado("Abierta")
     
 def MovimientoMesa2():
+    verificar_parada()
     robot.release_with_tool()
     registrar_estado("Abierta")
+    verificar_parada()
     robot.move(JointsPosition(0.84,-0.99,0.60,-0.02,-1.26,0.02))
     registrar_estado("Abierta")
+    verificar_parada()
     robot.move(JointsPosition(0.84,-0.99,0.52,-0.03,-1.14,0.03))
     registrar_estado("Abierta")
+    verificar_parada()
     robot.grasp_with_tool() 
     registrar_estado("Cerrada (Objeto)")
+    verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
     registrar_estado("Cerrada (Objeto)")
+    verificar_parada()
     robot.move(JointsPosition(1.71,-0.57,-0.15,0.00,-0.88,0.17))
     registrar_estado("Cerrada (Objeto)")
+    verificar_parada()
     robot.move(JointsPosition(1.70,-0.65,-0.15,0.00,-0.80,0.16))
     registrar_estado("Cerrada (Objeto)")
+    verificar_parada()
     robot.release_with_tool()
     registrar_estado("Abierta")
+    verificar_parada()
     robot.move(JointsPosition(1.71,-0.57,-0.15,0.00,-0.88,0.17))
     registrar_estado("Abierta")
+    verificar_parada()
     robot.move(JointsPosition(-0.05, 0.24, -0.61, -0.01, -0.32, 0.0)) 
     registrar_estado("Abierta")
     
 def Defectuosas():
     global cinta_activa
+    verificar_parada()
     robot.run_conveyor(conveyor_id, speed=80, direction=ConveyorDirection.BACKWARD)
     cinta_activa = True
     registrar_estado("Desconocido")
-    robot.wait(10)
+    
+    for i in range(100):
+        verificar_parada()
+        robot.wait(0.1)
+        
+    verificar_parada()
     robot.stop_conveyor(conveyor_id)
     cinta_activa = False
     registrar_estado("Desconocido")
 
+def detener_ciclo_automatico():
+    """Activa el flag de parada urgente para romper la ejecución del bucle."""
+    stop_urgente.set()
+
 def automatico():
-    # El proceso automático se apropia del lock para que get_pose no interrumpa la transmisión de datos
+    stop_urgente.clear()
+    
     with lock:
-        PickPlace()
-        PickPlace()
-        PickPlace()
+        try:
+            PickPlace()
+            PickPlace()
+            PickPlace()
+        except InterruptedError as e:
+            print(f"Aviso: {e}")
+        except Exception as e:
+            print(f"Error inesperado en ciclo: {e}")
