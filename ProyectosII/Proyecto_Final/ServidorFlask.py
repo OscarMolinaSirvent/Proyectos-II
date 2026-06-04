@@ -1,7 +1,6 @@
 import threading
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from Funciones import *
 import Funciones
 from ComunicacionDB import *
 import time
@@ -36,19 +35,27 @@ def bucle_actualizacion_posicion():
 threading.Thread(target=bucle_actualizacion_posicion, daemon=True).start()
 
 
+@app.route("/robot_status", methods=["GET"])
+def robot_status():
+    status = {
+        "connected": Funciones.robot is not None,
+        "conveyor_id": Funciones.conveyor_id if hasattr(Funciones, "conveyor_id") else None,
+        "robot_type": type(Funciones.robot).__name__ if Funciones.robot is not None else None
+    }
+    return jsonify(status)
+
 @app.route("/startCinta", methods=["POST"])
 def runcov():
     data = request.json or {}
-    # Cambiado: Obtenemos el parámetro 'velocidad' desde el cuerpo JSON (por defecto 50)
     velocidad = data.get("velocidad", 50)
 
     print(f"Boton Pulsado: Iniciando cinta a velocidad {velocidad}")
-    threading.Thread(target=run_conv, args=(velocidad,)).start()
+    threading.Thread(target=Funciones.run_conv, args=(velocidad,)).start()
     return jsonify({"status": f"cinta funcionando a velocidad {velocidad}", "velocidad": velocidad})
 
 @app.route("/stopCinta", methods=["POST"])
 def stop_cinta():
-    threading.Thread(target=stop_conv).start()
+    threading.Thread(target=Funciones.stop_conv).start()
     return jsonify({"status": "cinta detenida"})
 
 
@@ -84,6 +91,15 @@ def stop_automatico():
 
     return jsonify({"status": "proceso automatico detenido"})
 
+@app.route("/paletizadas_count", methods=["GET"])
+def paletizadas_count():
+    return jsonify({"paletizadas": Funciones.paletizadas})
+
+@app.route("/home", methods=["POST"])
+def move_home():
+    threading.Thread(target=Funciones.home).start()
+    return jsonify({"status": "Volviendo a posición inicial..."})
+
 @app.route("/get_position", methods=["GET"])
 def get_position():
     with pos_lock:
@@ -104,6 +120,20 @@ def move_robot():
 
     threading.Thread(target=Funciones.move_joints, args=(j1, j2, j3, j4, j5, j6)).start()
     return jsonify({"status": "movimiento iniciado"})
+
+
+@app.route("/move_pose", methods=["POST"])
+def move_pose():
+    data = request.json 
+    x = data.get("x")
+    y = data.get("y")
+    z = data.get("z")
+    roll = data.get("roll")
+    pitch = data.get("pitch")
+    yaw = data.get("yaw")
+
+    threading.Thread(target=Funciones.move_pose, args=(x, y, z, roll, pitch, yaw)).start()
+    return jsonify({"status": "movimiento por pose iniciado"})
 
 @app.route("/log")
 def ver_logs():

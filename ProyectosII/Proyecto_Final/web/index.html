@@ -102,6 +102,7 @@
                                         <option value="Cinta">Cinta</option>
                                         <option value="Movimiento">Movimientos</option>
                                         <option value="Herramienta">Herramienta</option>
+                                        <option value="Sensor">Sensor</option>
                                     </select>
                                     <button id="openLogBtn" class="btn btn-log">ABRIR LOG</button>
                                 </div>
@@ -155,6 +156,20 @@
                                         <div class="input-group"><label>J6</label><input type="number" id="j6" value="0.0"></div>
                                     </div>
                                     <button id="moveBtn" class="btn btn-execute">ENVIAR COORDENADAS</button>
+                                </div>
+                            </section>
+                            <section class="card full-width" style="background: rgba(0,0,0,0.2); margin-top: 10px;">
+                                <h3>Movimiento por Pose (TCP)</h3>
+                                <div class="manual-form">
+                                    <div class="input-row">
+                                        <div class="input-group"><label>X (m)</label><input type="number" id="x" step="0.01" value="0.00"></div>
+                                        <div class="input-group"><label>Y (m)</label><input type="number" id="y" step="0.01" value="0.00"></div>
+                                        <div class="input-group"><label>Z (m)</label><input type="number" id="z" step="0.01" value="0.00"></div>
+                                        <div class="input-group"><label>Roll (rad)</label><input type="number" id="roll" step="0.01" value="0.00"></div>
+                                        <div class="input-group"><label>Pitch (rad)</label><input type="number" id="pitch" step="0.01" value="0.00"></div>
+                                        <div class="input-group"><label>Yaw (rad)</label><input type="number" id="yaw" step="0.01" value="0.00"></div>
+                                    </div>
+                                    <button id="movePoseBtn" class="btn btn-execute">ENVIAR POSE (TCP)</button>
                                 </div>
                             </section>
                         </div>
@@ -228,7 +243,20 @@
                 document.getElementById("curr_yaw").innerText = data.yaw.toFixed(2);
             } catch (e) { }
         }
+
+        async function updatePiecesCount() {
+            try {
+                const res = await fetch(`${API_URL}/paletizadas_count`);
+                const data = await res.json();
+                document.getElementById("piezas").innerText = data.paletizadas ?? 0;
+            } catch (e) {
+                console.warn("No se pudo actualizar el contador de piezas paletizadas", e);
+            }
+        }
+
         setInterval(updateTelemetry, 1000);
+        setInterval(updatePiecesCount, 1000);
+        updatePiecesCount();
 
         document.getElementById("moveBtn").onclick = async () => {
             const joints = {
@@ -244,6 +272,24 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(joints)
+            });
+            statusDiv.innerText = "SISTEMA CONECTADO";
+        };
+
+        document.getElementById("movePoseBtn").onclick = async () => {
+            const pose = {
+                x: parseFloat(document.getElementById("x").value),
+                y: parseFloat(document.getElementById("y").value),
+                z: parseFloat(document.getElementById("z").value),
+                roll: parseFloat(document.getElementById("roll").value),
+                pitch: parseFloat(document.getElementById("pitch").value),
+                yaw: parseFloat(document.getElementById("yaw").value)
+            };
+            statusDiv.innerText = "MOVIENDO ROBOT...";
+            await fetch(`${API_URL}/move_pose`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(pose)
             });
             statusDiv.innerText = "SISTEMA CONECTADO";
         };

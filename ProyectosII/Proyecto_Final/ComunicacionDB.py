@@ -166,6 +166,13 @@ def obtener_logs(conexion, elemento=None):
             WHERE ELEMENTO = 'Herramienta'
             ORDER BY fecha_hora DESC
             """
+        if elemento == "Sensor":
+            sql = """
+            SELECT fecha_hora, elemento, instruccion
+            FROM logs
+            WHERE ELEMENTO = 'Sensor'
+            ORDER BY fecha_hora DESC
+            """
             
         cursor.execute(sql)
         resultados = cursor.fetchall()
